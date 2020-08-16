@@ -55,7 +55,7 @@ namespace TantaresUM
         const string CAMERA_TYPE_RED_COLOUR = "RED_COLOUR";
         const string CAMERA_TYPE_GREEN_COLOUR = "GREEN_COLOUR";
         const string CAMERA_TYPE_BLUE_COLOUR = "BLUE_COLOUR";
-
+        const string CAMERA_TYPE_GREYSCALE = "GREYSCALE_COLOUR";
 
         RenderTexture _renderTextureColor;
         RenderTexture _renderTextureDepth;
@@ -149,6 +149,23 @@ namespace TantaresUM
                 _galaxyCamera.transform.localPosition = Vector3.zero;
                 _galaxyCamera.transform.localRotation = Quaternion.identity;
             }
+
+            // Configure which events are available.
+
+            Actions["ActionCaptureFullColourImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR);
+            Events["EventCaptureFullColourImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR);
+            
+            Actions["ActionCaptureRedImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_RED_COLOUR);
+            Events["EventCaptureRedImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_RED_COLOUR);
+
+            Actions["ActionCaptureGreenImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREEN_COLOUR);
+            Events["EventCaptureGreenImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREEN_COLOUR);
+
+            Actions["ActionCaptureGreenImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREEN_COLOUR);
+            Events["EventCaptureGreenImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREEN_COLOUR);
+
+            Actions["ActionCaptureGreyscaleImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREYSCALE);
+            Events["EventCaptureGreyscaleImage"].active = (cameraType == CAMERA_TYPE_FULL_COLOUR || cameraType == CAMERA_TYPE_GREYSCALE);
         }
 
         public void Update()
@@ -215,6 +232,18 @@ namespace TantaresUM
             CaptureImage(CAMERA_TYPE_BLUE_COLOUR);
         }
 
+        [KSPAction(guiName = "Capture Greyscale Image", activeEditor = true)]
+        public void ActionCaptureGreyscaleImage(KSPActionParam param)
+        {
+            CaptureImage(CAMERA_TYPE_GREYSCALE);
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Greyscale Image", active = true)]
+        public void EventCaptureGreyscaleImage()
+        {
+            CaptureImage(CAMERA_TYPE_GREYSCALE);
+        }
+
         public void CaptureImage(string captureType)
         {
             try
@@ -263,6 +292,9 @@ namespace TantaresUM
 
                 if (captureType == CAMERA_TYPE_BLUE_COLOUR)
                     imageTexture = ModuleTantaresCameraEffects.GetBlueTexture(imageTexture);
+
+                if (captureType == CAMERA_TYPE_GREYSCALE)
+                    imageTexture = ModuleTantaresCameraEffects.GetGreyscaleTexture(imageTexture);
 
                 // Apply error scrambling if enabled.
 

@@ -66,7 +66,24 @@ namespace TantaresUM
             return inputTexture;
         }
 
-        
+        public static Texture2D GetGreyscaleTexture(Texture2D inputTexture)
+        {
+            // Change all pixels to their greyscale
+            // component only.
+
+            for (int y = 0; y < inputTexture.height; y++)
+            {
+                for (int x = 0; x < inputTexture.width; x++)
+                {
+                    var currentPixel = inputTexture.GetPixel(x, y);
+                    var newPixel = new Color
+                        (currentPixel.grayscale, currentPixel.grayscale, currentPixel.grayscale);
+                    inputTexture.SetPixel(x, y, newPixel);
+                }
+            }
+
+            return inputTexture;
+        }
 
         public static Texture2D GetErrorDamagedTexture(Texture2D inputTexture, int errorRate)
         {
@@ -79,7 +96,7 @@ namespace TantaresUM
                 {
                     int randomErrorChance = randomNumberGenerator.Next(100);
 
-                    if (randomErrorChance >= errorRate)
+                    if (randomErrorChance <= errorRate)
                     {
                         inputTexture.SetPixel(x, y, (randomErrorChance % 2 == 0) ? Color.white : Color.black);
                     }
