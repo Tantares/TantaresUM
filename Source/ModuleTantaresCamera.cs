@@ -15,6 +15,9 @@ namespace TantaresUM
         public string cameraTransformName = "cameraTransform";
 
         [KSPField(isPersistant = true)]
+        public string cameraType = CAMERA_TYPE_FULL_COLOUR;
+
+        [KSPField(isPersistant = true)]
         public float cameraFieldOfView = 60;
 
         [KSPField(isPersistant = true)]
@@ -22,6 +25,12 @@ namespace TantaresUM
 
         [KSPField(isPersistant = true)]
         public int cameraVerticalResolution = 256;
+
+        [KSPField(isPersistant = true)]
+        public bool cameraHasErrors = true;
+
+        [KSPField(isPersistant = true)]
+        public int cameraErrorRate = 5;
 
         private GameObject _cameraGameObject = null;
         private GameObject _nearGameObject = null;
@@ -41,6 +50,12 @@ namespace TantaresUM
         const string NEAR_CAMERA_NAME = "Camera 00";
 
         const string DEBUG_LOG_PREFIX = "ModuleTantaresCamera";
+
+        const string CAMERA_TYPE_FULL_COLOUR = "FULL_COLOUR";
+        const string CAMERA_TYPE_RED_COLOUR = "RED_COLOUR";
+        const string CAMERA_TYPE_GREEN_COLOUR = "GREEN_COLOUR";
+        const string CAMERA_TYPE_BLUE_COLOUR = "BLUE_COLOUR";
+
 
         RenderTexture _renderTextureColor;
         RenderTexture _renderTextureDepth;
@@ -152,19 +167,55 @@ namespace TantaresUM
             _galaxyCamera.enabled = false;
         }
 
-        [KSPAction(guiName = "Capture Image", activeEditor = true)]
-        public void ActionCaptureImage(KSPActionParam param)
+        [KSPAction(guiName = "Capture Full Colour Image", activeEditor = true)]
+        public void ActionCaptureFullColourImage(KSPActionParam param)
         {
-            CaptureImage();
+            CaptureImage(CAMERA_TYPE_FULL_COLOUR);
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Image", active = true)]
-        public void EventCaptureImage()
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Full Colour Image", active = true)]
+        public void EventCaptureFullColourImage()
         {
-            CaptureImage();
+            CaptureImage(CAMERA_TYPE_FULL_COLOUR);
         }
 
-        public void CaptureImage()
+        [KSPAction(guiName = "Capture Red Image", activeEditor = true)]
+        public void ActionCaptureRedImage(KSPActionParam param)
+        {
+            CaptureImage(CAMERA_TYPE_RED_COLOUR);
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Red Image", active = true)]
+        public void EventCaptureRedImage()
+        {
+            CaptureImage(CAMERA_TYPE_RED_COLOUR);
+        }
+
+        [KSPAction(guiName = "Capture Green Image", activeEditor = true)]
+        public void ActionCaptureGreenImage(KSPActionParam param)
+        {
+            CaptureImage(CAMERA_TYPE_GREEN_COLOUR);
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Green Image", active = true)]
+        public void EventCaptureGreenImage()
+        {
+            CaptureImage(CAMERA_TYPE_GREEN_COLOUR);
+        }
+
+        [KSPAction(guiName = "Capture Blue Image", activeEditor = true)]
+        public void ActionCaptureBlueImage(KSPActionParam param)
+        {
+            CaptureImage(CAMERA_TYPE_BLUE_COLOUR);
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Capture Blue Image", active = true)]
+        public void EventCaptureBlueImage()
+        {
+            CaptureImage(CAMERA_TYPE_BLUE_COLOUR);
+        }
+
+        public void CaptureImage(string captureType)
         {
             try
             {
@@ -200,7 +251,25 @@ namespace TantaresUM
                 imageTexture.ReadPixels(new Rect(0, 0, cameraHorizontalResolution, cameraVerticalResolution), 0, 0);
                 imageTexture.Apply();
 
-                Debug.LogFormat("[{0}] Encoding render texture to bytes.", DEBUG_LOG_PREFIX);
+                Debug.LogFormat("[{0}] Applying effects to the image texture.", DEBUG_LOG_PREFIX);
+
+                // Apply filtering based on capture type.
+
+                if (captureType == CAMERA_TYPE_RED_COLOUR)
+                    imageTexture = ModuleTantaresCameraEffects.GetRedTexture(imageTexture);
+
+                if (captureType == CAMERA_TYPE_GREEN_COLOUR)
+                    imageTexture = ModuleTantaresCameraEffects.GetGreenTexture(imageTexture);
+
+                if (captureType == CAMERA_TYPE_BLUE_COLOUR)
+                    imageTexture = ModuleTantaresCameraEffects.GetBlueTexture(imageTexture);
+
+                // Apply error scrambling if enabled.
+
+                if (cameraHasErrors)
+                    imageTexture = ModuleTantaresCameraEffects.GetErrorDamagedTexture(imageTexture, cameraErrorRate);
+                
+                Debug.LogFormat("[{0}] Encoding image texture to bytes.", DEBUG_LOG_PREFIX);
 
                 byte[] bytes = imageTexture.EncodeToPNG();
                 Destroy(imageTexture);
